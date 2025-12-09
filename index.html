@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="fa">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script>
+        // Deep link handler - only activates when there are meaningful parameters
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+            
+            // Check if this is from 404 redirect or has query parameters (excluding just 'from' param)
+            const isFrom404 = urlParams.get('from') === '404';
+            
+            // Build the correct path for deep linking
+            let currentPath;
+            if (isFrom404) {
+                // Extract the original path from the 404 redirect
+                const encodedPath = urlParams.get('path') || '/';
+                try {
+                    currentPath = decodeURIComponent(encodedPath);
+                    // If it's a full file:// URL, extract just the query string
+                    if (currentPath.includes('?')) {
+                        currentPath = currentPath.substring(currentPath.indexOf('?'));
+                    }
+                } catch(e) {
+                    currentPath = '/';
+                }
+            } else {
+                // Use just the query string for deep linking
+                const queryString = window.location.search;
+                currentPath = queryString ? '/' + queryString : '/';
+            }
+            
+            // Only show smart button on mobile devices when there are meaningful deep link params
+            const shouldShowSmartButton = /android/i.test(userAgent);
+            
+            if (shouldShowSmartButton) {
+                // Constants for URLs
+                const PACKAGE_NAME = "com.FlyingAcorn.Wordle";
+                const BASE_URL = "https://playwordle.flyingacorn.studio";
+                const APP_STORE_LINK = "https://apps.apple.com/us/app/id6748600347";
+                const PLAY_STORE_LINK = "https://play.google.com/store/apps/details?id=" + PACKAGE_NAME;
+                const MARKET_LINK = "market://details?id=" + PACKAGE_NAME;
+                const CAFEBAZAAR_LINK = "https://cafebazaar.ir/app/" + PACKAGE_NAME;
+                const MYKET_LINK = "https://myket.ir/app/" + PACKAGE_NAME;
+                
+                const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
+                const isAndroid = /android/i.test(userAgent);
+                const isMacOS = /Macintosh|MacIntel|MacPPC|Mac68K/i.test(userAgent);
+                
+                // Create and inject the smart button
+                const smartButton = document.createElement('div');
+                smartButton.id = 'smart-open-button';
+                smartButton.innerHTML = `
+                    <button class="smart-btn">
+                        <span class="btn-text">همین حالا نصب کن</span>
+                        <span class="btn-icon">📱</span>
+                        <span class="btn-close">×</span>
+                    </button>
+                `;
+                
+                // Add styles
+                const style = document.createElement('style');
+                style.textContent = `
+                    #smart-open-button {
+                        position: fixed;
+                        top: max(10px, 2vh);
+                        left: 50%;
+                        transform: translateX(-50%);
+                        z-index: 9999;
+                        animation: slideDown 0.5s ease-out;
+                        padding: 0 10px;
+                        box-sizing: border-box;
+                    }
+                    
+                    .smart-btn {
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        color: white;
+                        border: none;
+                        padding: 0.4em 2.5em 0.4em 1em;
+                        border-radius: 50px;
+                        font-size: clamp(12px, 3.5vw, 16px);
+                        font-weight: 600;
+                        font-family: 'YekanBakh', 'Poppins', sans-serif;
+                        cursor: pointer;
+                        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+                        display: inline-flex;
+                        align-items: center;
+                        gap: 0.4em;
+                        transition: all 0.3s ease;
+                        position: relative;
+                        white-space: nowrap;
+                        max-width: calc(100vw - 20px);
+                    }
+                    
+                    .smart-btn:active {
+                        transform: scale(0.95);
+                    }
+                    
+                    .btn-icon {
+                        font-size: 1.2em;
+                    }
+                    
+                    .btn-close {
+                        position: absolute;
+                        right: 0.5em;
+                        top: 50%;
+                        transform: translateY(-50%);
+                        font-size: 1em;
+                        font-weight: bold;
+                        color: rgba(255, 255, 255, 0.7);
+                        cursor: pointer;
+                        padding: 0.1em;
+                        border-radius: 50%;
+                        transition: all 0.2s ease;
+                        width: 1.2em;
+                        height: 1.2em;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    }
+                    
+                    .btn-close:hover {
+                        color: white;
+                        background: rgba(255, 255, 255, 0.2);
+                    }
+                    
+                    @keyframes slideDown {
+                        from {
+                            opacity: 0;
+                            transform: translateX(-50%) translateY(-20px);
+                        }
+                        to {
+                            opacity: 1;
+                            transform: translateX(-50%) translateY(0);
+                        }
+                    }
+                `;
+                
+                document.head.appendChild(style);
+                document.body.appendChild(smartButton);
+                
+                // Handle button click
+                smartButton.querySelector('.smart-btn').addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Check if the close button was clicked
+                    if (e.target.classList.contains('btn-close')) {
+                        // Close button clicked - smooth fade out and remove
+                        smartButton.style.transition = 'opacity 0.3s ease-out';
+                        smartButton.style.opacity = '0';
+                        setTimeout(() => {
+                            smartButton.remove();
+                        }, 300);
+                        return;
+                    }
+                    
+                    // Main button clicked - proceed with install logic
+                    // Use full URL for deep link (required for Universal Links/App Links)
+                    const appLink = BASE_URL + currentPath;
+                    
+                    // Update button state immediately
+                    this.innerHTML = '<span class="btn-icon">⏳</span><span class="btn-text">در حال باز کردن...</span>';
+                    this.style.opacity = '0.7';
+                    this.disabled = true;
+                    
+                    // Hide button after 3 seconds
+                    setTimeout(() => {
+                        smartButton.style.transition = 'opacity 0.5s ease-out';
+                        smartButton.style.opacity = '0';
+                        setTimeout(() => {
+                            smartButton.remove();
+                        }, 500);
+                    }, 3000);
+                    
+                    let appOpened = false;
+                    const startTime = Date.now();
+                    
+                    // Try to open the app - use different methods for different platforms
+                    if (isIOS) {
+                        // For iOS, attempt to open the app via Universal Link
+                        // Try opening the app without navigation
+                        const iframe = document.createElement('iframe');
+                        iframe.style.display = 'none';
+                        iframe.src = appLink;
+                        document.body.appendChild(iframe);
+                        
+                        // Check if app opened after a delay
+                        setTimeout(() => {
+                            document.body.removeChild(iframe);
+                            
+                            // If the page is still visible, the app didn't open
+                            if (document.visibilityState === "visible") {
+                                window.location.href = APP_STORE_LINK;
+                            }
+                        }, 2500);
+                    } else if (isAndroid) {
+                        // For Android, use the proven approach from original 404.html
+                        // Open the market link directly
+                        window.location.href = MARKET_LINK;
+
+                        // Fallback to Google Play if the app is not installed (but user said to drop this)
+                        // Keeping it simple - just try market://
+                    } else {
+                        // On desktop, show message immediately
+                        alert('این بازی فقط برای موبایل در دسترس است. لطفا از طریق اپ استور یا گوگل پلی دانلود کنید.');
+                        return; // Don't continue with the rest of the logic
+                    }
+                    
+                    // Detect if app opened by monitoring visibility and blur
+                    const checkAppOpened = function() {
+                        appOpened = true;
+                        // Only close the opened window for Android (iOS doesn't use window.open)
+                        if (isAndroid && newWindow && !newWindow.closed) {
+                            newWindow.close();
+                        }
+                    };
+                    
+                    document.addEventListener('visibilitychange', function() {
+                        if (document.visibilityState === 'hidden') {
+                            checkAppOpened();
+                        }
+                    });
+                    
+                    window.addEventListener('blur', checkAppOpened);
+                    window.addEventListener('pagehide', checkAppOpened);
+                    
+                    // Set up fallback to store after timeout (none needed for current logic)
+                    // iOS handles its own fallback, Android just tries market://
+                });
+                
+                // Remove the separate close button event listener since it's now integrated
+            }
+        });
+    </script>
+    <title>واژه باف — بازی پازل واژه‌ای</title>
+    <meta name="description" content="واژه باف: بازی پازل واژه‌ای رایگان و آفلاین. با ۶ شانس کلمه را حدس بزنید؛ از رنگ‌های راهنما استفاده کنید و در حالت‌های سفر، ماراتن و پازل روزانه مهارت خود را بسنجید. دانلود از گوگل‌پلی و اپ‌استور.">
+    
+
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/styles/main.css">
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/favicon/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/favicon/favicon-16x16.png">
+    <link rel="manifest" href="assets/favicon/site.webmanifest">
+</head>
+
+<body>
+    <header class="game-header">
+        <img src="assets/images/Cover.jpg" alt="کاور بازی واژه باف" class="game-main-image responsive-image">
+            <h1>واژه باف (Wordloom)</h1>
+            <p>بازی پازل واژه‌ای — ۶ شانس برای حدس کلمه! از رنگ‌های راهنما استفاده کنید تا کلمه پنهان را پیدا کنید و رکورد خود را بهبود دهید.</p>
+    </header>
+
+    <main class="game-content">
+        <section class="download-section">
+            <h2>همین حالا دانلود کنید</h2>
+            <div class="download-buttons">
+                <!-- <a href="https://cafebazaar.ir/app/com.FlyingAcorn.Wordle" class="btn download-btn" target="_blank" rel="noopener">
+                    <img src="assets/images/icons/cafebazaar.svg" alt="کافه بازار" class="responsive-icon"> کافه بازار
+                </a>
+                <a href="https://myket.ir/app/com.FlyingAcorn.Wordle" class="btn download-btn" target="_blank" rel="noopener">
+                    <img src="assets/images/icons/myket.svg" alt="مایکت" class="responsive-icon"> مایکت
+                </a> -->
+                <a href="https://play.google.com/store/apps/details?id=com.FlyingAcorn.Wordle" class="btn download-btn" target="_blank" rel="noopener">
+                    <img src="assets/images/icons/googleplay.svg" alt="گوگل پلی" class="responsive-icon"> گوگل پلی
+                </a>
+                <!-- <a href="https://apps.apple.com/us/app/%D9%88%D8%A7%DA%98%D9%87-%D8%A8%D8%A7%D9%81/id6749933008" class="btn download-btn" target="_blank" rel="noopener">
+                    <img src="assets/images/icons/appstore.svg" alt="اپ استور" class="responsive-icon"> اپ استور
+                </a> -->
+            </div>
+            
+        </section>
+    </main>
+
+    <footer class="game-footer">
+        <p>&copy; 2025 Flying Acorn. تمامی حقوق محفوظ است.</p>
+    </footer>
+    <script src="assets/js/main.js" defer></script>
+</body>
+
+</html>

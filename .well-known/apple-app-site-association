@@ -1,0 +1,18 @@
+{
+   "appclips": {
+     "apps": []
+   },
+   "applinks": {
+     "apps": [],
+     "details": [
+       {
+         "appIDs": ["N8X52ZMF76.com.FlyingAcorn.Wordle"],
+         "components": [
+           {
+             "/": "/*"
+           }
+         ]
+       }
+     ]
+   }
+ }
