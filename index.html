@@ -34,7 +34,7 @@
             }
             
             // Only show smart button on mobile devices when there are meaningful deep link params
-            const shouldShowSmartButton = /android/i.test(userAgent);
+            const shouldShowSmartButton = /iPad|iPhone|iPod|android/i.test(userAgent);
             
             if (shouldShowSmartButton) {
                 // Constants for URLs
