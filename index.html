@@ -45,7 +45,6 @@
                 const MARKET_LINK = "market://details?id=" + PACKAGE_NAME;
                 const CAFEBAZAAR_LINK = "https://cafebazaar.ir/app/" + PACKAGE_NAME;
                 const MYKET_LINK = "https://myket.ir/app/" + PACKAGE_NAME;
-                const USE_GOOGLE_PLAY_FALLBACK = true; // If app not installed, fallback to Google Play only
                 
                 const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
                 const isAndroid = /android/i.test(userAgent);
@@ -198,17 +197,8 @@
                             }
                         }, 2500);
                     } else if (isAndroid) {
-                        // For Android, first try opening the app via market://
-                        window.location.href = MARKET_LINK;
-
-                        // If the app is not installed, optionally fall back to Google Play
-                        if (USE_GOOGLE_PLAY_FALLBACK) {
-                            setTimeout(function() {
-                                if (!appOpened && document.visibilityState === 'visible') {
-                                    window.location.href = PLAY_STORE_LINK;
-                                }
-                            }, 2000);
-                        }
+                        // For Android, directly open Google Play Store website
+                        window.location.href = PLAY_STORE_LINK;
                     } else {
                         // On desktop, show message immediately
                         alert('این بازی فقط برای موبایل در دسترس است. لطفا از طریق اپ استور یا گوگل پلی دانلود کنید.');
