@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script>
+        const currentPath = window.location.pathname + window.location.search;
+        window.location.href = "/index.html?from=404&path=" + encodeURIComponent(currentPath);
+    </script>
+</head>
+<body></body>
+</html>

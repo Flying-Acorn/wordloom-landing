@@ -1,0 +1,286 @@
+<!-- Shared shell for the /install/ campaign pages (the paid-ad destinations; branding lives on /).
+     A page picks its store with `store: market|play|appstore|choose` in its front matter.
+     Most pages redirect immediately - `market` sends Android to Google Play and iOS to the App Store;
+     the single-store pages go straight to their store. `choose` is the exception: it never
+     redirects on Android, it is a plain list of store buttons. -->
+{% assign play_url = "https://play.google.com/store/apps/details?id=" | append: site.package_name %}
+{% assign appstore_url = "https://apps.apple.com/us/app/id" | append: site.apple_id %}
+{% comment %} No-JS destination for the `market` pages. {% endcomment %}
+{% assign chooser_url = "/install/stores.html" %}
+{% case page.store %}
+{% when "market" %}{% assign store_url = chooser_url %}{% assign store_name = "" %}
+{% when "play" %}{% assign store_url = play_url %}{% assign store_name = "گوگل پلی" %}
+{% when "appstore" %}{% assign store_url = appstore_url %}{% assign store_name = "اپ استور" %}
+{% when "choose" %}{% assign store_url = play_url %}{% assign store_name = "" %}
+{% endcase %}
+{% comment %} Title suffix: a page may override with `label`; stores fall back to their name; /install/ has neither, so no suffix. {% endcomment %}
+{% assign page_label = page.label | default: store_name %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#4CAF50">
+    <title>دانلود {{ site.app_name }}{% if page_label != "" %} | {{ page_label }}{% endif %}</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon/favicon-32x32.png">
+
+    {% comment %} The chooser has nowhere to auto-send anyone - its buttons are plain links, so it
+    works without JS on its own. Every other page still needs the no-JS bounce. {% endcomment %}
+    {% unless page.store == "choose" %}
+    <noscript>
+        <meta http-equiv="refresh" content="0;url={{ store_url }}">
+    </noscript>
+    {% endunless %}
+
+    <style>
+        @font-face {
+            font-family: 'YekanBakh';
+            src: url('/assets/fonts/YekanBakh-Regular.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
+            /* Show the fallback face immediately rather than holding the text invisible -
+               a blank button converts nobody. */
+            font-display: swap;
+        }
+
+        body {
+            font-family: 'YekanBakh', sans-serif;
+            background-color: #4CAF50;
+            color: #ffffff;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1.2em;
+            text-align: center;
+            padding: 1.5em;
+            box-sizing: border-box;
+        }
+
+        .status {
+            font-size: clamp(16px, 4.5vw, 20px);
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .spinner {
+            width: 34px;
+            height: 34px;
+            border: 3px solid rgba(255, 255, 255, 0.35);
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.7em;
+            width: min(100%, 280px);
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.55em;
+            padding: 0.75em 1.2em;
+            border-radius: 50px;
+            font-size: clamp(14px, 3.8vw, 16px);
+            font-weight: 600;
+            text-decoration: none;
+            background: #ffffff;
+            color: #388E3C;
+        }
+
+        /* Inlined, so the marks paint with the page - no request, no reflow under the tap. */
+        .store-logo {
+            width: 21px;
+            height: 21px;
+            flex: 0 0 auto;
+        }
+
+        .app-icon {
+            width: 84px;
+            height: 84px;
+            border-radius: 22%;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        .action-btn.secondary {
+            background: transparent;
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.7);
+        }
+    </style>
+</head>
+
+<body>
+    {% if page.store == "choose" %}
+    <img class="app-icon" src="/assets/images/icons/icon-192.png" width="84" height="84"
+        alt="{{ site.app_name }}" fetchpriority="high">
+    <p class="status">برای نصب {{ site.app_name }}، فروشگاه خود را انتخاب کنید:</p>
+    {% comment %} Which stores appear is the page's own choice, via `stores:` in its front matter. {% endcomment %}
+    <div class="actions">
+        {% if page.stores contains "play" %}
+        <a class="action-btn" data-pkg="com.android.vending" href="{{ play_url }}">{% include store-googleplay.svg %}دریافت از گوگل پلی</a>
+        {% endif %}
+        {% comment %} iPhones are redirected to the App Store before they ever see this, so this
+        button is really for desktop visitors; the script drops it on Android. {% endcomment %}
+        {% if page.stores contains "appstore" %}
+        <a class="action-btn" data-platform="ios" href="{{ appstore_url }}">{% include store-appstore.svg %}دریافت از اپ استور</a>
+        {% endif %}
+    </div>
+    {% else %}
+    <p class="status" id="status">{% if page.store == "market" %}در حال انتقال برای نصب {{ site.app_name }}…{% else %}برای نصب {{ site.app_name }}، در حال انتقال به {{ store_name }}…{% endif %}</p>
+    <div class="spinner" id="spinner"></div>
+    <div class="actions">
+        <a id="manual-link" class="action-btn" href="{{ store_url }}">نصب {{ site.app_name }}</a>
+        {% unless page.store == "market" %}
+        <a class="action-btn secondary" href="/">صفحه اصلی {{ site.app_name }}</a>
+        {% endunless %}
+    </div>
+    {% endif %}
+
+    <script>
+        (function () {
+            const STORES = {
+                play: "{{ play_url }}",
+                appstore: "{{ appstore_url }}"
+            };
+            const STORE_NAMES = {
+                play: "گوگل پلی",
+                appstore: "اپ استور"
+            };
+            const PAGE_STORE = "{{ page.store }}";
+            const PACKAGE_NAME = "{{ site.package_name }}";
+            const APP_NAME = "{{ site.app_name }}";
+
+            // No-JS / off-platform fallback: the plain store list. Carries the campaign query string.
+            const CHOOSER_URL = window.location.origin + "/install/stores.html" + window.location.search;
+
+            // How long the spinner runs before the page settles into its manual link.
+            const HINT_DELAY = 3000;
+            // A store the visitor's phone cannot install from is a dead end, so send
+            // them to the one that matches their platform instead.
+            const REDIRECT_MISMATCHED_PLATFORM = true;
+
+            const params = new URLSearchParams(window.location.search);
+            const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+            const isIOS = /iPad|iPhone|iPod/.test(userAgent) && !window.MSStream;
+            const isAndroid = /android/i.test(userAgent);
+
+            // Forward campaign params to Play as an install referrer (utm_source=…&utm_medium=…)
+            function playReferrer() {
+                const explicit = params.get("referrer");
+                if (explicit) return "&referrer=" + encodeURIComponent(explicit);
+
+                const utm = [];
+                ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"].forEach(function (key) {
+                    const value = params.get(key);
+                    if (value) utm.push(key + "=" + value);
+                });
+                return utm.length ? "&referrer=" + encodeURIComponent(utm.join("&")) : "";
+            }
+
+            // App Store campaign tracking: pt = provider token, ct = campaign token
+            function appStoreCampaign() {
+                const query = [];
+                const providerToken = params.get("pt");
+                const campaign = params.get("ct") || params.get("utm_campaign") || params.get("utm_source");
+                if (providerToken) query.push("pt=" + encodeURIComponent(providerToken));
+                if (campaign) query.push("ct=" + encodeURIComponent(campaign));
+                if (!query.length) return "";
+                query.push("mt=8");
+                return "?" + query.join("&");
+            }
+
+            // On Android, open Google Play directly through an intent, with the web page as fallback.
+            function upgradeStoreButtons() {
+                document.querySelectorAll(".action-btn[data-pkg]").forEach(function (el) {
+                    // el.href is still the plain store page here; keep it as the fallback before overwriting.
+                    const referrer = playReferrer();
+                    const web = el.href + referrer;
+                    el.href = "intent://details?id=" + PACKAGE_NAME + referrer +
+                        "#Intent;scheme=market;package=" + el.dataset.pkg +
+                        ";S.browser_fallback_url=" + encodeURIComponent(web) + ";end";
+                });
+            }
+
+            // The chooser is a destination, not a waypoint: iPhones go to the App Store, everyone else picks.
+            if (PAGE_STORE === "choose") {
+                if (isIOS) {
+                    window.location.replace(STORES.appstore + appStoreCampaign());
+                    return;
+                }
+                // The buttons ship as plain https links so they work with no JS and off Android.
+                // On Android we upgrade them: a tap carries the user activation that intent://
+                // needs, which is the one thing the gesture-less redirect on the market pages
+                // cannot supply.
+                const iosButtons = document.querySelectorAll('.action-btn[data-platform="ios"]');
+                if (isAndroid) {
+                    upgradeStoreButtons();
+                    // An Android phone cannot install from the App Store. That button is here for
+                    // desktop visitors - the only ones with no platform of their own to be sent to,
+                    // since an iPhone already left this page on the redirect above.
+                    iosButtons.forEach(function (el) { el.remove(); });
+                } else {
+                    // Desktop keeps the App Store link, with its campaign tokens attached.
+                    iosButtons.forEach(function (el) { el.href = STORES.appstore + appStoreCampaign(); });
+                }
+                return;
+            }
+
+            let store = PAGE_STORE;
+            if (REDIRECT_MISMATCHED_PLATFORM) {
+                if (isIOS && store !== "appstore") store = "appstore";
+                else if (isAndroid && store === "appstore") store = "play";
+            }
+
+            let target;
+            if (store === "market") {
+                // Android goes to Google Play; off Android there is no single store to pick, so show the list.
+                target = isAndroid ? STORES.play + playReferrer() : CHOOSER_URL;
+            } else if (store === "play") {
+                target = STORES.play + playReferrer();
+            } else if (store === "appstore") {
+                target = STORES.appstore + appStoreCampaign();
+            } else {
+                target = STORES[store];
+            }
+
+            const manualLink = document.getElementById("manual-link");
+            const status = document.getElementById("status");
+            manualLink.href = target;
+
+            // If the platform rule redirected to a different store, follow the visitor.
+            if (store !== PAGE_STORE) {
+                status.textContent = "برای نصب " + APP_NAME + "، در حال انتقال به " + STORE_NAMES[store] + "…";
+                manualLink.textContent = "باز کردن " + STORE_NAMES[store];
+            }
+
+            // Once the spinner has had its moment, stop pretending something is still
+            // loading - whoever is still looking at this page needs the link, not a spinner.
+            window.setTimeout(function () {
+                document.getElementById("spinner").hidden = true;
+                status.textContent = "اگر به‌صورت خودکار منتقل نشدید:";
+            }, HINT_DELAY);
+
+            // Redirect immediately. replace() keeps this page out of history, so "back" from the
+            // store returns to wherever the campaign link was clicked instead of re-triggering us.
+            window.location.replace(target);
+        })();
+    </script>
+</body>
+
+</html>

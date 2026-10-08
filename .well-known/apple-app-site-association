@@ -1,0 +1,24 @@
+{
+  "appclips": {
+    "apps": []
+  },
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appIDs": ["N8X52ZMF76.com.FlyingAcorn.Wordle"],
+        "components": [
+          {
+            "/": "/install/*",
+            "exclude": true,
+            "comment": "Paid campaign landing pages must stay in the browser so the store redirect and conversion tracking run."
+          },
+          {
+            "/": "/*",
+            "comment": "Every other path opens the app when it is installed."
+          }
+        ]
+      }
+    ]
+  }
+}

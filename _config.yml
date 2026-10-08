@@ -1,0 +1,10 @@
+include:
+  - .well-known
+  - nRDk
+
+# App identity - single source of truth for every store link on the site.
+# Used as {{ site.package_name }} / {{ site.apple_id }} in the pages below.
+package_name: com.FlyingAcorn.Wordle
+app_name: "واژه‌باف"
+app_icon: "/assets/images/icons/icon.png"
+apple_id: "6749933008"
