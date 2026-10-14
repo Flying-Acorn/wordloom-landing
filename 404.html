@@ -2,8 +2,18 @@
 <html>
 <head>
     <script>
-        const currentPath = window.location.pathname + window.location.search;
-        window.location.href = "/index.html?from=404&path=" + encodeURIComponent(currentPath);
+        // A duel invite (/d/<code>?t=…) that did not open the game: the invite page, with the code and the query.
+        const invite = window.location.pathname.match(/^\/d\/([^\/?#]+)\/?$/);
+        if (invite) {
+            const query = new URLSearchParams(window.location.search);
+            let code = invite[1];
+            try { code = decodeURIComponent(code); } catch (e) { }
+            query.set("code", code);
+            window.location.replace("/d/?" + query.toString());
+        } else {
+            const currentPath = window.location.pathname + window.location.search;
+            window.location.href = "/index.html?from=404&path=" + encodeURIComponent(currentPath);
+        }
     </script>
 </head>
 <body></body>

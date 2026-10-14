@@ -1,0 +1,243 @@
+---
+# Duel invites. The game shares https://playwordle.flyingacorn.studio/d/<code>?t=<token>[&match=<id>]; with the
+# game installed and the domain verified, the phone opens the game and never shows this. Otherwise 404.html
+# brings the visitor here (/d/?code=…&t=…&match=…): open the game anyway, type the code by hand, or install.
+# Outage host (remote config share_urls_config.duelLinkHost): copy the built d/ and assets/ to a server players can
+# reach inside Iran and send /d/<code> to this file (nginx: location ~ ^/d/[A-Za-z0-9]+/?$ { try_files /d/index.html =404; }).
+# "Open the game" and the iPhone banner always carry the playwordle.flyingacorn.studio link, which the game opens.
+---
+{% assign play_url = "https://play.google.com/store/apps/details?id=" | append: site.package_name %}
+{% assign appstore_url = "https://apps.apple.com/us/app/id" | append: site.apple_id %}
+{% assign bazaar_url = "https://cafebazaar.ir/app/" | append: site.package_name %}
+{% assign myket_url = "https://myket.ir/app/" | append: site.package_name %}
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#4CAF50">
+    <title>دعوت به دوئل {{ site.app_name }}</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon/favicon-32x32.png">
+    <!-- iPhone: Safari's banner opens the installed game with the invite (app-argument, set below). -->
+    <meta name="apple-itunes-app" id="app-banner" content="app-id={{ site.apple_id }}">
+
+    <style>
+        @font-face {
+            font-family: 'YekanBakh';
+            src: url('/assets/fonts/YekanBakh-Regular.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        body {
+            font-family: 'YekanBakh', sans-serif;
+            background-color: #4CAF50;
+            color: #ffffff;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1.1em;
+            text-align: center;
+            padding: 1.5em 16px;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            font-size: clamp(20px, 6vw, 26px);
+            margin: 0;
+        }
+
+        p {
+            margin: 0;
+            font-size: clamp(14px, 4vw, 17px);
+            line-height: 1.8;
+        }
+
+        .app-icon {
+            width: 84px;
+            height: 84px;
+            border-radius: 22%;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        .actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.7em;
+            width: min(100%, 300px);
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.55em;
+            padding: 0.75em 1.2em;
+            border-radius: 50px;
+            font: inherit;
+            font-size: clamp(14px, 3.8vw, 16px);
+            font-weight: 600;
+            text-decoration: none;
+            background: #ffffff;
+            color: #388E3C;
+            border: 0;
+            cursor: pointer;
+        }
+
+        .action-btn.secondary {
+            background: transparent;
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.7);
+        }
+
+        .store-logo {
+            width: 21px;
+            height: 21px;
+            flex: 0 0 auto;
+        }
+
+        .code-box {
+            width: min(100%, 300px);
+            box-sizing: border-box;
+            background: rgba(0, 0, 0, 0.14);
+            border-radius: 18px;
+            padding: 1em;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6em;
+            align-items: center;
+        }
+
+        .code {
+            direction: ltr;
+            font-family: ui-monospace, Menlo, Consolas, monospace;
+            font-size: clamp(26px, 9vw, 34px);
+            letter-spacing: 0.12em;
+            font-weight: 700;
+            user-select: all;
+        }
+
+        .section-title {
+            font-weight: 600;
+            margin-top: 0.4em;
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <img class="app-icon" src="/assets/images/icons/icon-192.png" width="84" height="84" alt="{{ site.app_name }}">
+    <h1>بیا {{ site.app_name }} دوئل کنیم! ⚔️</h1>
+
+    <div class="actions" id="open-block" hidden>
+        <a class="action-btn" id="open-game" href="#">بازی رو باز کن</a>
+    </div>
+
+    <div class="code-box" id="code-block" hidden>
+        <p>اگه بازی باز نشد، این کد رو توی بازی، پروفایل ← دوستان وارد کن:</p>
+        <div class="code" id="code"></div>
+        <button class="action-btn secondary" id="copy" type="button">کپی کد</button>
+    </div>
+
+    <p class="section-title" id="install">بازی رو نداری؟ نصبش کن:</p>
+    <div class="actions">
+        <a class="action-btn" data-platform="android" data-pkg="com.farsitel.bazaar" data-scheme="bazaar" href="{{ bazaar_url }}">دریافت از بازار</a>
+        <a class="action-btn" data-platform="android" data-pkg="ir.mservices.market" data-scheme="myket" href="{{ myket_url }}">دریافت از مایکت</a>
+        <a class="action-btn" data-platform="android" data-pkg="com.android.vending" data-scheme="market" href="{{ play_url }}">{% include store-googleplay.svg %}دریافت از گوگل پلی</a>
+        <a class="action-btn" data-platform="ios" href="{{ appstore_url }}">{% include store-appstore.svg %}دریافت از اپ استور</a>
+    </div>
+
+    <script>
+        (function () {
+            const HOST = "playwordle.flyingacorn.studio";
+            const PACKAGE_NAME = "{{ site.package_name }}";
+            const APPLE_ID = "{{ site.apple_id }}";
+
+            const params = new URLSearchParams(window.location.search);
+            // The game's codes are letters and digits (MinCodeLength 4, MaxCodeLength 32 in DuelLinks).
+            // 404.html passes it as ?code=; a host that rewrites /d/<code> to this file leaves it in the path.
+            const fromPath = window.location.pathname.match(/^\/d\/([^\/?#]+)\/?$/);
+            let code = (params.get("code") || (fromPath ? fromPath[1] : "")).trim();
+            try { code = decodeURIComponent(code); } catch (e) { }
+            const validCode = /^[A-Za-z0-9]{4,32}$/.test(code) ? code.toUpperCase() : "";
+
+            const userAgent = navigator.userAgent || navigator.vendor || "";
+            const isAndroid = /android/i.test(userAgent);
+            // iPadOS reports a Mac; a Mac with a touch screen is one.
+            const isIOS = !isAndroid && (/iPad|iPhone|iPod/.test(userAgent) ||
+                (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1));
+
+            // The invite exactly as shared, so the game joins the same way it would have from the chat.
+            function inviteLink() {
+                const query = [];
+                ["t", "match"].forEach(function (key) {
+                    const value = params.get(key);
+                    if (value) query.push(key + "=" + encodeURIComponent(value));
+                });
+                return "https://" + HOST + "/d/" + encodeURIComponent(validCode) + (query.length ? "?" + query.join("&") : "");
+            }
+
+            if (validCode) {
+                document.getElementById("code").textContent = validCode;
+                document.getElementById("code-block").hidden = false;
+
+                if (isAndroid) {
+                    // Names the game, so it opens even where Android could not verify the link (the reason the
+                    // visitor is here at all). Not installed: Chrome comes back to this page.
+                    const link = inviteLink();
+                    document.getElementById("open-game").href = "intent://" + link.slice("https://".length) +
+                        "#Intent;scheme=https;package=" + PACKAGE_NAME +
+                        ";S.browser_fallback_url=" + encodeURIComponent(window.location.href.split("#")[0] + "#install") + ";end";
+                    document.getElementById("open-block").hidden = false;
+                } else if (isIOS) {
+                    // Safari's banner opens the installed game with this link; it has no button of its own here.
+                    document.getElementById("app-banner").setAttribute("content",
+                        "app-id=" + APPLE_ID + ", app-argument=" + inviteLink());
+                }
+
+                const copy = document.getElementById("copy");
+                copy.addEventListener("click", function () {
+                    function done() { copy.textContent = "کپی شد ✓"; }
+                    // Old browsers and in-app web views: select the code and copy that (it stays selected to copy by hand).
+                    function select() {
+                        const range = document.createRange();
+                        range.selectNodeContents(document.getElementById("code"));
+                        const selection = window.getSelection();
+                        selection.removeAllRanges();
+                        selection.addRange(range);
+                        try { if (document.execCommand("copy")) done(); } catch (e) { }
+                    }
+                    if (navigator.clipboard && window.isSecureContext)
+                        navigator.clipboard.writeText(validCode).then(done, select);
+                    else
+                        select();
+                });
+            }
+
+            // Only the stores this phone can install from; a computer sees them all.
+            document.querySelectorAll(".action-btn[data-platform]").forEach(function (el) {
+                if ((isIOS && el.dataset.platform !== "ios") || (isAndroid && el.dataset.platform !== "android")) {
+                    el.remove();
+                    return;
+                }
+                // Android: open the store app itself (a tap carries the activation intent:// needs), web page as fallback.
+                if (isAndroid && el.dataset.pkg) {
+                    const web = el.href;
+                    el.href = "intent://details?id=" + PACKAGE_NAME + "#Intent;scheme=" + el.dataset.scheme +
+                        ";package=" + el.dataset.pkg + ";S.browser_fallback_url=" + encodeURIComponent(web) + ";end";
+                }
+            });
+        })();
+    </script>
+</body>
+
+</html>
