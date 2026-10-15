@@ -1,6 +1,6 @@
 ---
-# Duel invites. The game shares https://playwordle.flyingacorn.studio/d/<code>?t=<token>[&match=<id>]; with the
-# game installed and the domain verified, the phone opens the game and never shows this. Otherwise 404.html
+# Duel invites. The game shares https://playwordle.flyingacorn.studio/d/<join code> (older builds: /d/<player id>?t=
+# <token>[&match=<id>]); with the game installed and the domain verified, the phone opens the game and never shows this. Otherwise 404.html
 # brings the visitor here (/d/?code=…&t=…&match=…): open the game anyway, type the code by hand, or install.
 # Outage host (remote config share_urls_config.duelLinkHost): copy the built d/ and assets/ to a server players can
 # reach inside Iran and send /d/<code> to this file (nginx: location ~ ^/d/[A-Za-z0-9]+/?$ { try_files /d/index.html =404; }).
