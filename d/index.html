@@ -8,10 +8,6 @@
 # iPhone the game's own scheme (com.flyingacorn.wordle://d/<code>; game builds from the friend links release on). The
 # iPhone banner carries the https link.
 ---
-{% assign play_url = "https://play.google.com/store/apps/details?id=" | append: site.package_name %}
-{% assign appstore_url = "https://apps.apple.com/us/app/id" | append: site.apple_id %}
-{% assign bazaar_url = "https://cafebazaar.ir/app/" | append: site.package_name %}
-{% assign myket_url = "https://myket.ir/app/" | append: site.package_name %}
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 
@@ -150,13 +146,7 @@
         <button class="action-btn secondary" id="copy" type="button">کپی کد</button>
     </div>
 
-    <p class="section-title" id="install">بازی رو نداری؟ نصبش کن:</p>
-    <div class="actions">
-        <a class="action-btn" data-platform="android" data-pkg="com.farsitel.bazaar" data-scheme="bazaar" href="{{ bazaar_url }}">دریافت از بازار</a>
-        <a class="action-btn" data-platform="android" data-pkg="ir.mservices.market" data-scheme="myket" href="{{ myket_url }}">دریافت از مایکت</a>
-        <a class="action-btn" data-platform="android" data-pkg="com.android.vending" data-scheme="market" href="{{ play_url }}">{% include store-googleplay.svg %}دریافت از گوگل پلی</a>
-        <a class="action-btn" data-platform="ios" href="{{ appstore_url }}">{% include store-appstore.svg %}دریافت از اپ استور</a>
-    </div>
+    {% include invite-install.html %}
 
     <script>
         (function () {
@@ -234,19 +224,6 @@
                 });
             }
 
-            // Only the stores this phone can install from; a computer sees them all.
-            document.querySelectorAll(".action-btn[data-platform]").forEach(function (el) {
-                if ((isIOS && el.dataset.platform !== "ios") || (isAndroid && el.dataset.platform !== "android")) {
-                    el.remove();
-                    return;
-                }
-                // Android: open the store app itself (a tap carries the activation intent:// needs), web page as fallback.
-                if (isAndroid && el.dataset.pkg) {
-                    const web = el.href;
-                    el.href = "intent://details?id=" + PACKAGE_NAME + "#Intent;scheme=" + el.dataset.scheme +
-                        ";package=" + el.dataset.pkg + ";S.browser_fallback_url=" + encodeURIComponent(web) + ";end";
-                }
-            });
         })();
     </script>
 </body>

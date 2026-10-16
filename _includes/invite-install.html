@@ -1,0 +1,58 @@
+{% comment %}
+The invite pages' install block (d/, f/). One button: iPhone opens the App Store; Android opens the phone's own store
+chooser (a market:// intent naming no store, so every store app installed can answer: Google Play, Bazaar, Myket…).
+When nothing answers, Chrome comes back with #stores and the Google Play / App Store buttons show. A computer, which
+has no chooser, sees the buttons at once.
+{% endcomment %}
+{% assign play_url = "https://play.google.com/store/apps/details?id=" | append: site.package_name %}
+{% assign appstore_url = "https://apps.apple.com/us/app/id" | append: site.apple_id %}
+<p class="section-title" id="install">بازی رو نداری؟ نصبش کن:</p>
+<div class="actions" id="install-block">
+    <a class="action-btn" id="install-game" href="{{ play_url }}">نصب {{ site.app_name }}</a>
+</div>
+<div class="actions" id="store-list" hidden>
+    <a class="action-btn" data-platform="android" data-pkg="com.android.vending" href="{{ play_url }}">{% include store-googleplay.svg %}دریافت از گوگل پلی</a>
+    <a class="action-btn" data-platform="ios" href="{{ appstore_url }}">{% include store-appstore.svg %}دریافت از اپ استور</a>
+</div>
+<script>
+    (function () {
+        const PACKAGE_NAME = "{{ site.package_name }}";
+        const APPSTORE_URL = "{{ appstore_url }}";
+        const userAgent = navigator.userAgent || navigator.vendor || "";
+        const isAndroid = /android/i.test(userAgent);
+        // iPadOS reports a Mac; a Mac with a touch screen is one.
+        const isIOS = !isAndroid && (/iPad|iPhone|iPod/.test(userAgent) ||
+            (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1));
+        const install = document.getElementById("install-game");
+        const list = document.getElementById("store-list");
+
+        function showStores() {
+            document.getElementById("install-block").hidden = true;
+            list.hidden = false;
+        }
+
+        // Only the stores this phone can install from; a computer sees both.
+        list.querySelectorAll(".action-btn[data-platform]").forEach(function (el) {
+            if ((isIOS && el.dataset.platform !== "ios") || (isAndroid && el.dataset.platform !== "android"))
+                el.remove();
+        });
+
+        if (isIOS) {
+            install.href = APPSTORE_URL;
+        } else if (isAndroid) {
+            const page = window.location.href.split("#")[0];
+            install.href = "intent://details?id=" + PACKAGE_NAME + "#Intent;scheme=market;S.browser_fallback_url=" +
+                encodeURIComponent(page + "#stores") + ";end";
+            // The fallback's own button opens Google Play's app (a tap carries the activation intent:// needs).
+            list.querySelectorAll(".action-btn[data-pkg]").forEach(function (el) {
+                const web = el.href;
+                el.href = "intent://details?id=" + PACKAGE_NAME + "#Intent;scheme=market;package=" + el.dataset.pkg +
+                    ";S.browser_fallback_url=" + encodeURIComponent(web) + ";end";
+            });
+            if (window.location.hash === "#stores")
+                showStores();
+        } else {
+            showStores();
+        }
+    })();
+</script>
