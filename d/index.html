@@ -4,7 +4,9 @@
 # brings the visitor here (/d/?code=…&t=…&match=…): open the game anyway, type the code by hand, or install.
 # Outage host (remote config share_urls_config.duelLinkHost): copy the built d/ and assets/ to a server players can
 # reach inside Iran and send /d/<code> to this file (nginx: location ~ ^/d/[A-Za-z0-9]+/?$ { try_files /d/index.html =404; }).
-# "Open the game" and the iPhone banner always carry the playwordle.flyingacorn.studio link, which the game opens.
+# "Open the game" carries the invite: on Android the playwordle.flyingacorn.studio link naming the game's package, on
+# iPhone the game's own scheme (com.flyingacorn.wordle://d/<code>; game builds from the friend links release on). The
+# iPhone banner carries the https link.
 ---
 {% assign play_url = "https://play.google.com/store/apps/details?id=" | append: site.package_name %}
 {% assign appstore_url = "https://apps.apple.com/us/app/id" | append: site.apple_id %}
@@ -159,6 +161,7 @@
     <script>
         (function () {
             const HOST = "playwordle.flyingacorn.studio";
+            const APP_SCHEME = "com.flyingacorn.wordle";
             const PACKAGE_NAME = "{{ site.package_name }}";
             const APPLE_ID = "{{ site.apple_id }}";
 
@@ -177,13 +180,17 @@
                 (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1));
 
             // The invite exactly as shared, so the game joins the same way it would have from the chat.
-            function inviteLink() {
+            function inviteQuery() {
                 const query = [];
                 ["t", "match"].forEach(function (key) {
                     const value = params.get(key);
                     if (value) query.push(key + "=" + encodeURIComponent(value));
                 });
-                return "https://" + HOST + "/d/" + encodeURIComponent(validCode) + (query.length ? "?" + query.join("&") : "");
+                return query.length ? "?" + query.join("&") : "";
+            }
+
+            function inviteLink() {
+                return "https://" + HOST + "/d/" + encodeURIComponent(validCode) + inviteQuery();
             }
 
             if (validCode) {
@@ -199,9 +206,13 @@
                         ";S.browser_fallback_url=" + encodeURIComponent(window.location.href.split("#")[0] + "#install") + ";end";
                     document.getElementById("open-block").hidden = false;
                 } else if (isIOS) {
-                    // Safari's banner opens the installed game with this link; it has no button of its own here.
+                    // Safari's banner opens the installed game with this link. The button uses the game's own scheme: a
+                    // link to this same site stays in Safari.
                     document.getElementById("app-banner").setAttribute("content",
                         "app-id=" + APPLE_ID + ", app-argument=" + inviteLink());
+                    document.getElementById("open-game").href =
+                        APP_SCHEME + "://d/" + encodeURIComponent(validCode) + inviteQuery();
+                    document.getElementById("open-block").hidden = false;
                 }
 
                 const copy = document.getElementById("copy");

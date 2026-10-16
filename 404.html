@@ -10,6 +10,11 @@
             try { code = decodeURIComponent(code); } catch (e) { }
             query.set("code", code);
             window.location.replace("/d/?" + query.toString());
+        } else if (window.location.pathname.match(/^\/f\/([^\/?#]+)\/?$/)) {
+            // A friend invite (/f/<player id>) that did not open the game: the friend invite page, with the id.
+            let id = window.location.pathname.match(/^\/f\/([^\/?#]+)\/?$/)[1];
+            try { id = decodeURIComponent(id); } catch (e) { }
+            window.location.replace("/f/?id=" + encodeURIComponent(id));
         } else {
             const currentPath = window.location.pathname + window.location.search;
             window.location.href = "/index.html?from=404&path=" + encodeURIComponent(currentPath);
