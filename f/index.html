@@ -4,6 +4,7 @@
 # 404.html brings the visitor here (/f/?id=…): open the game anyway, type the ID by hand in Profile → Friends, or install.
 # "Open the game": on Android the https link naming the game's package, on iPhone the game's own scheme
 # (com.flyingacorn.wordle://f/<player id>). The iPhone banner carries the https link.
+# Outage host: see d/index.html (copy f/ too; nginx location ~ ^/f/[A-Za-z0-9]+/?$ { try_files /f/index.html =404; }).
 ---
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
@@ -187,7 +188,12 @@
                     // link to this same site stays in Safari.
                     document.getElementById("app-banner").setAttribute("content",
                         "app-id=" + APPLE_ID + ", app-argument=" + inviteLink());
-                    document.getElementById("open-game").href =
+                    // An iPhone without the game (or with a build from before the scheme) can only show Safari's
+                    // "invalid address": the button says it is for players who have the game.
+                    const open = document.getElementById("open-game");
+                    open.textContent = "بازی رو داری؟ بازش کن";
+                    open.classList.add("secondary");
+                    open.href =
                         APP_SCHEME + "://f/" + encodeURIComponent(validCode);
                     document.getElementById("open-block").hidden = false;
                 }

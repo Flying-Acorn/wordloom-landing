@@ -49,8 +49,14 @@ has no chooser, sees the buttons at once.
                 el.href = "intent://details?id=" + PACKAGE_NAME + "#Intent;scheme=market;package=" + el.dataset.pkg +
                     ";S.browser_fallback_url=" + encodeURIComponent(web) + ";end";
             });
+            // Chrome comes back to this same page with #stores when no store app answered: only the fragment
+            // changes, so this script does not run again; listen for it.
             if (window.location.hash === "#stores")
                 showStores();
+            window.addEventListener("hashchange", function () {
+                if (window.location.hash === "#stores")
+                    showStores();
+            });
         } else {
             showStores();
         }
