@@ -10,6 +10,13 @@ has no chooser, sees the buttons at once.
 <div class="actions" id="install-block">
     <a class="action-btn" id="install-game" href="{{ play_url }}">نصب {{ site.app_name }}</a>
 </div>
+<noscript>
+    <style>#install-block { display: none; }</style>
+    <div class="actions">
+        <a class="action-btn" href="{{ play_url }}">{% include store-googleplay.svg %}دریافت از گوگل پلی</a>
+        <a class="action-btn" href="{{ appstore_url }}">{% include store-appstore.svg %}دریافت از اپ استور</a>
+    </div>
+</noscript>
 <div class="actions" id="store-list" hidden>
     <a class="action-btn" data-platform="android" data-pkg="com.android.vending" href="{{ play_url }}">{% include store-googleplay.svg %}دریافت از گوگل پلی</a>
     <a class="action-btn" data-platform="ios" href="{{ appstore_url }}">{% include store-appstore.svg %}دریافت از اپ استور</a>
@@ -46,8 +53,21 @@ has no chooser, sees the buttons at once.
             // The fallback's own button opens Google Play's app (a tap carries the activation intent:// needs).
             list.querySelectorAll(".action-btn[data-pkg]").forEach(function (el) {
                 const web = el.href;
+                el.dataset.web = web;
                 el.href = "intent://details?id=" + PACKAGE_NAME + "#Intent;scheme=market;package=" + el.dataset.pkg +
                     ";S.browser_fallback_url=" + encodeURIComponent(web) + ";end";
+            });
+            // An app's own browser (Instagram, Telegram…) neither opens intent:// nor comes back with #stores: when the
+            // page is still in front a moment after the tap, show the stores, as plain web links it can open.
+            install.addEventListener("click", function () {
+                setTimeout(function () {
+                    if (document.visibilityState !== "visible" || !list.hidden)
+                        return;
+                    list.querySelectorAll(".action-btn[data-web]").forEach(function (el) {
+                        el.href = el.dataset.web;
+                    });
+                    showStores();
+                }, 2000);
             });
             // Chrome comes back to this same page with #stores when no store app answered: only the fragment
             // changes, so this script does not run again; listen for it.
