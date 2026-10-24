@@ -1,7 +1,8 @@
 ---
 # Duel invites. The game shares https://playwordle.flyingacorn.studio/d/<join code> (older builds: /d/<player id>?t=
 # <token>[&match=<id>]); with the game installed and the domain verified, the phone opens the game and never shows this. Otherwise 404.html
-# brings the visitor here (/d/?code=…&t=…&match=…): open the game anyway, type the code by hand, or install.
+# brings the visitor here (/d/?code=…&t=…&match=…): open the game anyway, type the code by hand (Duels → Have a code?),
+# or install.
 # Outage host (remote config share_urls_config.duelLinkHost; friend links follow it too): copy the built d/, f/ and
 # assets/ to a server players can reach inside Iran and send /d/<code> and /f/<player id> to these files (nginx:
 # location ~ ^/d/[A-Za-z0-9]+/?$ { try_files /d/index.html =404; } and the same for ^/f/ with /f/index.html).
@@ -142,7 +143,7 @@
     </div>
 
     <div class="code-box" id="code-block" hidden>
-        <p>اگه بازی باز نشد، این کد رو توی بازی، پروفایل ← دوستان وارد کن:</p>
+        <p id="code-hint">اگه بازی باز نشد، این کد رو توی بازی، «دوئل با دوستان» ← «کد دعوت داری؟» وارد کن:</p>
         <div class="code" id="code"></div>
         <button class="action-btn secondary" id="copy" type="button">کپی کد</button>
     </div>
@@ -186,6 +187,11 @@
 
             if (validCode) {
                 document.getElementById("code").textContent = validCode;
+                // A join code (4 to 7, MaxJoinCodeLength) goes in the Duels screen's code box. An older build's link
+                // carries the inviter's player ID (8 to 12), which only the friends box takes.
+                if (validCode.length > 7)
+                    document.getElementById("code-hint").textContent =
+                        "اگه بازی باز نشد، این کد رو توی بازی، پروفایل ← دوستان وارد کن:";
                 document.getElementById("code-block").hidden = false;
 
                 if (isAndroid) {
