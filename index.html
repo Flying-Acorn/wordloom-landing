@@ -196,8 +196,16 @@
                             }
                         }, 2500);
                     } else if (isAndroid) {
-                        // For Android, directly open Google Play Store website
-                        window.location.href = PLAY_STORE_LINK;
+                        // The phone's own store chooser first: a store intent naming no store, so every store app
+                        // installed can answer. When none does, Chrome opens Google Play's page.
+                        window.location.href = "intent://details?id=" + PACKAGE_NAME + "#Intent;scheme=market;" +
+                            "S.browser_fallback_url=" + encodeURIComponent(PLAY_STORE_LINK) + ";end";
+                        // An app's own browser (Instagram, Telegram…) ignores intent://: when the page still has the
+                        // focus a moment later, nothing answered, so go to Google Play.
+                        setTimeout(() => {
+                            if (!appOpened && document.visibilityState === "visible" && document.hasFocus())
+                                window.location.href = PLAY_STORE_LINK;
+                        }, 2000);
                     } else {
                         // On desktop, show message immediately
                         alert('این بازی فقط برای موبایل در دسترس است. لطفا از طریق اپ استور یا گوگل پلی دانلود کنید.');
@@ -223,7 +231,7 @@
                     window.addEventListener('pagehide', checkAppOpened);
                     
                     // Set up fallback to store after timeout (none needed for current logic)
-                    // iOS handles its own fallback, Android goes straight to Google Play
+                    // iOS handles its own fallback, Android falls back to Google Play above
                 });
                 
                 // Remove the separate close button event listener since it's now integrated
