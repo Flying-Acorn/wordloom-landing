@@ -207,8 +207,8 @@
                                 window.location.href = PLAY_STORE_LINK;
                         }, 2000);
                     } else {
-                        // On desktop, show message immediately
-                        alert('این بازی فقط برای موبایل در دسترس است. لطفا از طریق اپ استور یا گوگل پلی دانلود کنید.');
+                        // A computer has no store of its own to send anyone to: Google Play.
+                        window.location.href = PLAY_STORE_LINK;
                         return; // Don't continue with the rest of the logic
                     }
                     

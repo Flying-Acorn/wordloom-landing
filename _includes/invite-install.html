@@ -1,29 +1,18 @@
 {% comment %}
-The invite pages' install block (d/, f/). One button: iPhone opens the App Store; Android opens the phone's own store
-chooser (a store intent naming no store, so every store app installed can answer).
-When nothing answers, Chrome comes back with #stores and the Google Play / App Store buttons show. A computer, which
-has no chooser, sees the buttons at once.
+The invite pages' install block. One button: iPhone opens the App Store; Android opens the phone's own store chooser
+(a store intent naming no store, so every store app installed can answer), and Google Play's page when nothing answers.
+A computer, or a browser without JS, opens Google Play's page.
 {% endcomment %}
 {% assign play_url = "https://play.google.com/store/apps/details?id=" | append: site.package_name %}
 {% assign appstore_url = "https://apps.apple.com/us/app/id" | append: site.apple_id %}
 <p class="section-title" id="install">بازی رو نداری؟ نصبش کن:</p>
-<div class="actions" id="install-block">
+<div class="actions">
     <a class="action-btn" id="install-game" href="{{ play_url }}">نصب {{ site.app_name }}</a>
-</div>
-<noscript>
-    <style>#install-block { display: none; }</style>
-    <div class="actions">
-        <a class="action-btn" href="{{ play_url }}">{% include store-googleplay.svg %}دریافت از گوگل پلی</a>
-        <a class="action-btn" href="{{ appstore_url }}">{% include store-appstore.svg %}دریافت از اپ استور</a>
-    </div>
-</noscript>
-<div class="actions" id="store-list" hidden>
-    <a class="action-btn" data-platform="android" data-pkg="com.android.vending" href="{{ play_url }}">{% include store-googleplay.svg %}دریافت از گوگل پلی</a>
-    <a class="action-btn" data-platform="ios" href="{{ appstore_url }}">{% include store-appstore.svg %}دریافت از اپ استور</a>
 </div>
 <script>
     (function () {
         const PACKAGE_NAME = "{{ site.package_name }}";
+        const PLAY_URL = "{{ play_url }}";
         const APPSTORE_URL = "{{ appstore_url }}";
         const userAgent = navigator.userAgent || navigator.vendor || "";
         const isAndroid = /android/i.test(userAgent);
@@ -31,36 +20,16 @@ has no chooser, sees the buttons at once.
         const isIOS = !isAndroid && (/iPad|iPhone|iPod/.test(userAgent) ||
             (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1));
         const install = document.getElementById("install-game");
-        const list = document.getElementById("store-list");
-
-        function showStores() {
-            document.getElementById("install-block").hidden = true;
-            list.hidden = false;
-        }
-
-        // Only the stores this phone can install from; a computer sees both.
-        list.querySelectorAll(".action-btn[data-platform]").forEach(function (el) {
-            if ((isIOS && el.dataset.platform !== "ios") || (isAndroid && el.dataset.platform !== "android"))
-                el.remove();
-        });
 
         if (isIOS) {
             install.href = APPSTORE_URL;
         } else if (isAndroid) {
-            const page = window.location.href.split("#")[0];
+            // When no store app answers, Chrome opens Google Play's page.
             install.href = "intent://details?id=" + PACKAGE_NAME + "#Intent;scheme=market;S.browser_fallback_url=" +
-                encodeURIComponent(page + "#stores") + ";end";
-            // The fallback's own button opens Google Play's app (a tap carries the activation intent:// needs).
-            list.querySelectorAll(".action-btn[data-pkg]").forEach(function (el) {
-                const web = el.href;
-                el.dataset.web = web;
-                el.href = "intent://details?id=" + PACKAGE_NAME + "#Intent;scheme=market;package=" + el.dataset.pkg +
-                    ";S.browser_fallback_url=" + encodeURIComponent(web) + ";end";
-            });
-            // An app's own browser (Instagram, Telegram…) neither opens intent:// nor comes back with #stores: when the
-            // page kept the focus a moment after the tap, show the stores, as plain web links it can open. The store
-            // chooser, a store app or the background takes the focus (the page may still count as visible behind the
-            // chooser), and then nothing changes.
+                encodeURIComponent(PLAY_URL) + ";end";
+            // An app's own browser (Instagram, Telegram…) ignores intent://: when the page kept the focus a moment
+            // after the tap, nothing answered, so go to Google Play. The store chooser, a store app or the background
+            // takes the focus (the page may still count as visible behind the chooser), and then nothing changes.
             install.addEventListener("click", function () {
                 let left = false;
                 function leave() { left = true; }
@@ -73,24 +42,11 @@ has no chooser, sees the buttons at once.
                 setTimeout(function () {
                     window.removeEventListener("blur", leave);
                     window.removeEventListener("pagehide", leave);
-                    if (left || document.visibilityState !== "visible" || !list.hidden)
+                    if (left || document.visibilityState !== "visible")
                         return;
-                    list.querySelectorAll(".action-btn[data-web]").forEach(function (el) {
-                        el.href = el.dataset.web;
-                    });
-                    showStores();
+                    window.location.href = PLAY_URL;
                 }, 2000);
             });
-            // Chrome comes back to this same page with #stores when no store app answered: only the fragment
-            // changes, so this script does not run again; listen for it.
-            if (window.location.hash === "#stores")
-                showStores();
-            window.addEventListener("hashchange", function () {
-                if (window.location.hash === "#stores")
-                    showStores();
-            });
-        } else {
-            showStores();
         }
     })();
 </script>
