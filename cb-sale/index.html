@@ -1,0 +1,123 @@
+---
+# CafeBazaar's web sale («جمعه‌بازار»). Bazaar's campaign page sends buyers to https://playwordle.flyingacorn.studio/cb-sale;
+# with the game installed and the domain verified, the phone opens the game, which signs in with Bazaar and receives
+# the purchase, and never shows this. Otherwise: open the game anyway (Android's intent naming the package), or
+# install it from Bazaar. The game's own scheme, com.flyingacorn.wordle://cb-sale, works in CafeBazaar builds only.
+---
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#4CAF50">
+    <title>خرید از جمعه‌بازار | {{ site.app_name }}</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="/assets/favicon/favicon-32x32.png">
+
+    <style>
+        @font-face {
+            font-family: 'YekanBakh';
+            src: url('/assets/fonts/YekanBakh-Regular.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
+            font-display: swap;
+        }
+
+        body {
+            font-family: 'YekanBakh', sans-serif;
+            background-color: #4CAF50;
+            color: #ffffff;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1.1em;
+            text-align: center;
+            padding: 1.5em 16px;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            font-size: clamp(20px, 6vw, 26px);
+            margin: 0;
+        }
+
+        p {
+            margin: 0;
+            font-size: clamp(14px, 4vw, 17px);
+            line-height: 1.8;
+        }
+
+        .app-icon {
+            width: 84px;
+            height: 84px;
+            border-radius: 22%;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        .actions {
+            display: flex;
+            flex-direction: column;
+            gap: 0.7em;
+            width: min(100%, 300px);
+        }
+
+        .action-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.55em;
+            padding: 0.75em 1.2em;
+            border-radius: 50px;
+            font: inherit;
+            font-size: clamp(14px, 3.8vw, 16px);
+            font-weight: 600;
+            text-decoration: none;
+            background: #ffffff;
+            color: #388E3C;
+            border: 0;
+            cursor: pointer;
+        }
+
+        .action-btn.secondary {
+            background: transparent;
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.7);
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <img class="app-icon" src="/assets/images/icons/icon-192.png" width="84" height="84" alt="{{ site.app_name }}">
+    <h1>خریدت از جمعه‌بازار توی {{ site.app_name }} منتظرته! 🎁</h1>
+    <p>بازی رو باز کن. اگه خریدت خودش نرسید، توی فروشگاه «دریافت» رو بزن و با همون حساب بازاری که باهاش خرید کردی وارد شو.</p>
+
+    <div class="actions">
+        <a class="action-btn" id="open-game" href="#" hidden>بازی رو باز کن</a>
+        <a class="action-btn secondary" href="https://cafebazaar.ir/app/{{ site.package_name }}">نصب {{ site.app_name }} از بازار</a>
+    </div>
+
+    <script>
+        (function () {
+            const HOST = "playwordle.flyingacorn.studio";
+            const PACKAGE_NAME = "{{ site.package_name }}";
+            const isAndroid = /android/i.test(navigator.userAgent || navigator.vendor || "");
+            if (!isAndroid) return;
+            // Names the game, so it opens even where Android could not verify the link (the reason the visitor is
+            // here at all). Not installed: Chrome comes back to this page.
+            const open = document.getElementById("open-game");
+            open.href = "intent://" + HOST + "/cb-sale#Intent;scheme=https;package=" + PACKAGE_NAME +
+                ";S.browser_fallback_url=" + encodeURIComponent(window.location.href.split("#")[0]) + ";end";
+            open.hidden = false;
+        })();
+    </script>
+</body>
+
+</html>
