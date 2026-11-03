@@ -1,8 +1,8 @@
 ---
-# CafeBazaar's web sale («جمعه‌بازار»). Bazaar's campaign page sends buyers to https://playwordle.flyingacorn.studio/cb-sale;
-# with the game installed and the domain verified, the phone opens the game, which signs in with Bazaar and receives
-# the purchase, and never shows this. Otherwise: open the game anyway (Android's intent naming the package), or
-# install it from Bazaar. The game's own scheme, com.flyingacorn.wordle://cb-sale, works in CafeBazaar builds only.
+# The store web sale («جمعه‌بازار»). The store's campaign page sends buyers to https://playwordle.flyingacorn.studio/cb-sale;
+# with the game installed and the domain verified, the phone opens the game, which signs in with the store and
+# receives the purchase, and never shows this. Otherwise: open the game anyway (Android's intent naming the package),
+# or install it from that store. The game's own scheme, com.flyingacorn.wordle://cb-sale, works in that store's builds only.
 ---
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
@@ -97,11 +97,12 @@
 <body>
     <img class="app-icon" src="/assets/images/icons/icon-192.png" width="84" height="84" alt="{{ site.app_name }}">
     <h1>خریدت از جمعه‌بازار توی {{ site.app_name }} منتظرته! 🎁</h1>
-    <p>بازی رو باز کن. اگه خریدت خودش نرسید، توی فروشگاه «دریافت» رو بزن و با همون حساب بازاری که باهاش خرید کردی وارد شو.</p>
+    <p>خریدت فقط توی نسخه‌ی بازارِ {{ site.app_name }} می‌رسه. اگه بازی رو از جای دیگه‌ای نصب کردی، اول نسخه‌ی بازار رو نصب کن.</p>
+    <p>بازی رو باز کن. اگه خریدت خودش نرسید، توی فروشگاه بازی «دریافت» رو بزن و با همون حسابی که باهاش خرید کردی وارد شو.</p>
 
     <div class="actions">
         <a class="action-btn" id="open-game" href="#" hidden>بازی رو باز کن</a>
-        <a class="action-btn secondary" href="https://cafebazaar.ir/app/{{ site.package_name }}">نصب {{ site.app_name }} از بازار</a>
+        <a class="action-btn secondary" href="https://cafebazaar.ir/app/{{ site.package_name }}">نصب نسخه‌ی بازارِ {{ site.app_name }}</a>
     </div>
 
     <script>
